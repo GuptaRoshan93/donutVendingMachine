@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.11;
+
+//owner address- address which deploys the contract
+//mapping address- address of the buyer which owns the donuts
+
+contract vendingMachine {
+
+    address public owner;
+    mapping(address => uint) public donutBalances;
+
+
+// sender is basically the eth address of the sneder who call the contract (deploy contract)
+// address(this) is the way to give the address of the current contract
+    constructor(){
+        owner= msg.sender;
+        donutBalances[address(this)]= 100;
+    }
+
+    // public means anyone can see whats the balance of donut
+    //view thats means that this funtion  cannot modify the data on the B/C but can read data from BC
+    //return funtion below give the balance of donut with the address mapped
+    function getVendingMachineBal() public view returns (uint) {
+        return donutBalances[address(this)];
+    }
+
+// no view as we gona change the data using this funtion
+//no return as it doesnt return anything 
+// +- amount restock based on the value of amount
+// require funtion, first argument condition; second argument error msg
+    function restock (uint amount) public {
+        require (msg.sender ==owner, "only the owner can restock this machine");
+        donutBalances[address(this)] += amount; 
+    }
+
+// payable keyword  is used when any funtion need to recive ether
+//donutBalances[address(this) means decrease of donut for the amount requested from the main contract
+//donutBalances[msg.sender] += amount means increase in the donut amount for the requester
+// msg.value is use to check the ether/value send
+// 2 ether is one donut price
+
+    function purchase(uint amount) public payable {
+        require(msg.value >= amount * 2 ether, "pay atleaste 2 ether per donut");
+        require (donutBalances[address(this)] >= amount, "not enough donuts");
+        donutBalances[address(this)] -= amount;
+        donutBalances[msg.sender] += amount;
+    }
+}
